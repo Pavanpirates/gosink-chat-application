@@ -22,7 +22,6 @@ const ChatPage = () => {
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  const inputRef = useRef(null);
   const chatBoxRef = useRef(null);
   const [stompClient, setStompClient] = useState(null);
 
@@ -31,14 +30,14 @@ const ChatPage = () => {
     if (!connected) {
       navigate("/");
     }
-  }, [connected, roomId, currentUser]);
+  }, [connected, roomId, currentUser, navigate]);
 
   // Load previous messages
   useEffect(() => {
     async function loadMessages() {
       try {
-        const messages = await getMessagess(roomId);
-        setMessages(messages);
+        const msgs = await getMessagess(roomId);
+        setMessages(msgs);
       } catch (error) {
         console.error("Error loading messages:", error);
       }
@@ -48,7 +47,7 @@ const ChatPage = () => {
     }
   }, [connected, roomId]);
 
-  // Auto-scroll on new messages
+  // Auto-scroll to bottom on new messages
   useEffect(() => {
     if (chatBoxRef.current) {
       chatBoxRef.current.scroll({
@@ -80,7 +79,7 @@ const ChatPage = () => {
     }
   }, [roomId, connected]);
 
-  // Send message function
+  // Send message
   const sendMessage = async () => {
     if (stompClient && connected && input.trim()) {
       const message = {
@@ -99,13 +98,13 @@ const ChatPage = () => {
   };
 
   // Leave room
-  function handleLogout() {
+  const handleLogout = () => {
     if (stompClient) stompClient.disconnect();
     setConnected(false);
     setRoomId("");
     setCurrentUser("");
     navigate("/");
-  }
+  };
 
   return (
     <div className="bg-[#0b0b0b] text-gray-100 min-h-screen flex flex-col">
@@ -128,7 +127,7 @@ const ChatPage = () => {
       {/* Chat Box */}
       <main
         ref={chatBoxRef}
-        className="pt-24 pb-32 px-4 sm:px-6 w-full sm:w-2/3 bg-gradient-to-b from-[#0d0d0d] to-[#1a1a1a] mx-auto h-screen overflow-auto rounded-md shadow-inner"
+        className="pt-24 pb-28 px-4 sm:px-6 w-full sm:w-2/3 bg-gradient-to-b from-[#0d0d0d] to-[#1a1a1a] mx-auto h-screen overflow-auto rounded-md shadow-inner"
       >
         {messages.map((message, index) => (
           <div
@@ -165,9 +164,9 @@ const ChatPage = () => {
         ))}
       </main>
 
-      {/* Input Box */}
-      <div className="fixed bottom-4 w-full px-4">
-        <div className="flex items-center gap-2 bg-[#111111] border border-[#ff8800]/40 rounded-full px-4 py-2 shadow-lg max-w-2xl mx-auto">
+      {/* ✅ Perfectly aligned Input Box */}
+      <div className="fixed bottom-0 inset-x-0 px-3 pb-[env(safe-area-inset-bottom)] bg-[#0b0b0b]">
+        <div className="flex items-center gap-2 bg-[#111111] border border-[#ff8800]/40 rounded-full px-3 py-2 shadow-lg max-w-md mx-auto w-full">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -176,14 +175,16 @@ const ChatPage = () => {
             }}
             type="text"
             placeholder="Type your message..."
-            className="flex-1 bg-transparent text-gray-200 px-3 py-2 outline-none placeholder-gray-500 text-sm"
+            className="flex-1 bg-transparent text-gray-200 px-2 py-2 outline-none placeholder-gray-500 text-sm"
           />
-          <button className="bg-[#222222] hover:bg-[#333333] text-[#ff8800] h-10 w-10 rounded-full flex justify-center items-center transition-transform transform hover:scale-110 active:scale-95 shrink-0">
+          <button
+            className="bg-[#222222] hover:bg-[#333333] text-[#ff8800] h-10 w-10 rounded-full flex justify-center items-center transition-transform transform hover:scale-110 active:scale-95 flex-shrink-0"
+          >
             <MdAttachFile size={20} />
           </button>
           <button
             onClick={sendMessage}
-            className="bg-[#ff6a00] hover:bg-[#ff3300] h-10 w-10 rounded-full flex justify-center items-center text-white transition-transform transform hover:scale-110 active:scale-95 shrink-0"
+            className="bg-[#ff6a00] hover:bg-[#ff3300] h-10 w-10 rounded-full flex justify-center items-center text-white transition-transform transform hover:scale-110 active:scale-95 flex-shrink-0"
           >
             <MdSend size={20} />
           </button>
