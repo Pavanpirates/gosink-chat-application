@@ -20,30 +20,35 @@ const ChatPage = () => {
   } = useChatContext();
 
   const navigate = useNavigate();
-  useEffect(() => {
-    if (!connected) {
-      navigate("/");
-    }
-  }, [connected, roomId, currentUser]);
-
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const inputRef = useRef(null);
   const chatBoxRef = useRef(null);
   const [stompClient, setStompClient] = useState(null);
 
+  // Redirect if not connected
+  useEffect(() => {
+    if (!connected) {
+      navigate("/");
+    }
+  }, [connected, roomId, currentUser]);
+
+  // Load previous messages
   useEffect(() => {
     async function loadMessages() {
       try {
         const messages = await getMessagess(roomId);
         setMessages(messages);
-      } catch (error) {}
+      } catch (error) {
+        console.error("Error loading messages:", error);
+      }
     }
     if (connected) {
       loadMessages();
     }
-  }, []);
+  }, [connected, roomId]);
 
+  // Auto-scroll on new messages
   useEffect(() => {
     if (chatBoxRef.current) {
       chatBoxRef.current.scroll({
@@ -53,6 +58,7 @@ const ChatPage = () => {
     }
   }, [messages]);
 
+  // WebSocket connection setup
   useEffect(() => {
     const connectWebSocket = () => {
       const sock = new SockJS(`${baseURL}/chat`);
@@ -60,7 +66,7 @@ const ChatPage = () => {
 
       client.connect({}, () => {
         setStompClient(client);
-        toast.success("Connected");
+        toast.success("Connected to chat!");
 
         client.subscribe(`/topic/room/${roomId}`, (message) => {
           const newMessage = JSON.parse(message.body);
@@ -72,8 +78,9 @@ const ChatPage = () => {
     if (connected) {
       connectWebSocket();
     }
-  }, [roomId]);
+  }, [roomId, connected]);
 
+  // Send message function
   const sendMessage = async () => {
     if (stompClient && connected && input.trim()) {
       const message = {
@@ -91,8 +98,9 @@ const ChatPage = () => {
     }
   };
 
+  // Leave room
   function handleLogout() {
-    stompClient.disconnect();
+    if (stompClient) stompClient.disconnect();
     setConnected(false);
     setRoomId("");
     setCurrentUser("");
@@ -100,9 +108,9 @@ const ChatPage = () => {
   }
 
   return (
-    <div className="bg-[#0b0b0b] text-gray-100 min-h-screen">
+    <div className="bg-[#0b0b0b] text-gray-100 min-h-screen flex flex-col">
       {/* Header */}
-      <header className="fixed w-full bg-gradient-to-r from-[#1a1a1a] via-[#222222] to-[#1a1a1a] py-4 shadow-md border-b border-[#ff6a00]/30 flex justify-between items-center px-8 z-10">
+      <header className="fixed w-full bg-gradient-to-r from-[#1a1a1a] via-[#222222] to-[#1a1a1a] py-4 shadow-md border-b border-[#ff6a00]/30 flex justify-between items-center px-6 sm:px-10 z-10">
         <h1 className="text-lg font-semibold text-[#ff8800]">
           Room: <span className="text-gray-200">{roomId}</span>
         </h1>
@@ -120,7 +128,7 @@ const ChatPage = () => {
       {/* Chat Box */}
       <main
         ref={chatBoxRef}
-        className="pt-24 pb-24 px-6 w-full sm:w-2/3 bg-gradient-to-b from-[#0d0d0d] to-[#1a1a1a] mx-auto h-screen overflow-auto rounded-md shadow-inner"
+        className="pt-24 pb-32 px-4 sm:px-6 w-full sm:w-2/3 bg-gradient-to-b from-[#0d0d0d] to-[#1a1a1a] mx-auto h-screen overflow-auto rounded-md shadow-inner"
       >
         {messages.map((message, index) => (
           <div
@@ -139,8 +147,8 @@ const ChatPage = () => {
               <div className="flex flex-row gap-3 items-start">
                 <img
                   className="h-10 w-10 rounded-full border border-[#ff8800]/40"
-                  src={"https://api.dicebear.com/9.x/lorelei/svg"}
-                  alt=""
+                  src="https://api.dicebear.com/9.x/lorelei/svg"
+                  alt="avatar"
                 />
                 <div className="flex flex-col gap-1">
                   <p className="text-sm font-semibold text-[#ff8800]">
@@ -158,8 +166,8 @@ const ChatPage = () => {
       </main>
 
       {/* Input Box */}
-      <div className="fixed bottom-4 w-full flex justify-center">
-        <div className="flex items-center justify-between bg-[#111111] border border-[#ff8800]/40 rounded-full px-5 py-2 shadow-lg w-[90%] sm:w-2/3">
+      <div className="fixed bottom-4 w-full px-4">
+        <div className="flex items-center gap-2 bg-[#111111] border border-[#ff8800]/40 rounded-full px-4 py-2 shadow-lg max-w-2xl mx-auto">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -168,19 +176,17 @@ const ChatPage = () => {
             }}
             type="text"
             placeholder="Type your message..."
-            className="flex-1 bg-transparent text-gray-200 px-3 py-2 outline-none placeholder-gray-500"
+            className="flex-1 bg-transparent text-gray-200 px-3 py-2 outline-none placeholder-gray-500 text-sm"
           />
-          <div className="flex gap-2">
-            <button className="bg-[#222222] hover:bg-[#333333] text-[#ff8800] h-10 w-10 rounded-full flex justify-center items-center transition-all">
-              <MdAttachFile size={20} />
-            </button>
-            <button
-              onClick={sendMessage}
-              className="bg-[#ff6a00] hover:bg-[#ff3300] h-10 w-10 rounded-full flex justify-center items-center text-white transition-all"
-            >
-              <MdSend size={20} />
-            </button>
-          </div>
+          <button className="bg-[#222222] hover:bg-[#333333] text-[#ff8800] h-10 w-10 rounded-full flex justify-center items-center transition-transform transform hover:scale-110 active:scale-95 shrink-0">
+            <MdAttachFile size={20} />
+          </button>
+          <button
+            onClick={sendMessage}
+            className="bg-[#ff6a00] hover:bg-[#ff3300] h-10 w-10 rounded-full flex justify-center items-center text-white transition-transform transform hover:scale-110 active:scale-95 shrink-0"
+          >
+            <MdSend size={20} />
+          </button>
         </div>
       </div>
     </div>
