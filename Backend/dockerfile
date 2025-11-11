@@ -1,16 +1,19 @@
-# Use a stable Java LTS runtime
-FROM openjdk:17-jdk-slim
+# Use a stable, supported Java runtime (no 'slim' version)
+FROM openjdk:17-jdk
 
 # Set working directory
 WORKDIR /app
 
-# Copy Maven wrapper and project files
+# Copy project files
 COPY . .
 
-# Build the Spring Boot JAR
+# Grant permission to mvnw if needed
+RUN chmod +x ./mvnw
+
+# Build the JAR (skip tests for faster build)
 RUN ./mvnw clean package -DskipTests
 
-# Expose the app port
+# Expose the port for Render
 EXPOSE 8080
 
 # Run the JAR
