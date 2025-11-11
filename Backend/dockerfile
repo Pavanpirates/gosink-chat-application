@@ -1,5 +1,6 @@
-# Use a stable, supported Java runtime (no 'slim' version)
-FROM openjdk:17-jdk
+
+# Use Eclipse Temurin (official OpenJDK build)
+FROM eclipse-temurin:17-jdk
 
 # Set working directory
 WORKDIR /app
@@ -7,10 +8,10 @@ WORKDIR /app
 # Copy project files
 COPY . .
 
-# Grant permission to mvnw if needed
+# Give permission to mvnw (Maven Wrapper)
 RUN chmod +x ./mvnw
 
-# Build the JAR (skip tests for faster build)
+# Build the Spring Boot JAR
 RUN ./mvnw clean package -DskipTests
 
 # Expose the port for Render
