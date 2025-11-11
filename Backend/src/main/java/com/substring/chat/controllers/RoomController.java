@@ -19,7 +19,7 @@ import com.substring.chat.repositories.RoomRepository;
 
 @RestController
 @RequestMapping("/api/v1/rooms")
-@CrossOrigin("http://localhost:5173")
+@CrossOrigin("https://gosink-chat-application.vercel.app/")
 public class RoomController {
 
     private RoomRepository roomRepository;
