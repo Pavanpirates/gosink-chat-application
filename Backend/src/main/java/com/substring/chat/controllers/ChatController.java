@@ -14,7 +14,7 @@ import com.substring.chat.payload.MessageRequest;
 import com.substring.chat.repositories.RoomRepository;
 
 @Controller
-@CrossOrigin("http://localhost:5173")
+@CrossOrigin("https://gosink-chat-application.vercel.app/")
 public class ChatController {
 
     private final RoomRepository roomRepository;

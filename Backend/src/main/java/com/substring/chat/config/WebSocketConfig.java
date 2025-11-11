@@ -22,7 +22,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/chat")
-                .setAllowedOriginPatterns("*") // ✅ works with localhost, 127.0.0.1, and others
+                .setAllowedOrigins(
+                    "https://gosink-chat-application.vercel.app", 
+                    "http://localhost:5173"                       
+                )
                 .withSockJS();
     }
 }
